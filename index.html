@@ -26,4 +26,413 @@
         .stat-item { display: flex; align-items: center; gap: 8px; }
         .stat-number { font-size: 20px; font-weight: 700; }
         .stat-number.approved { color: #006644; }
-        .stat-number.progress { col
+        .stat-number.progress { color: #974f0c; }
+        .stat-number.backlog { color: #0052cc; }
+        .content { padding: 40px; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .results-count { font-size: 14px; color: #5e6c84; }
+        .sort-dropdown { padding: 8px 12px; border: 2px solid #dfe1e6; border-radius: 3px; font-size: 13px; background: white; }
+        .ticket-list { display: flex; flex-direction: column; gap: 12px; }
+        .ticket-row { border: 2px solid #dfe1e6; border-radius: 3px; padding: 20px; cursor: pointer; background: white; display: grid; grid-template-columns: 100px 1fr 180px 140px 120px; gap: 20px; align-items: center; transition: all 0.2s; }
+        .ticket-row:hover { border-color: #0052cc; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+        .ticket-key { font-family: monospace; font-size: 13px; color: #0052cc; font-weight: 700; }
+        .ticket-details { display: flex; flex-direction: column; gap: 6px; }
+        .ticket-name { font-size: 15px; font-weight: 600; color: #172b4d; line-height: 1.4; }
+        .ticket-platforms { display: flex; flex-wrap: wrap; gap: 4px; }
+        .platform-tag { background: #f4f5f7; color: #5e6c84; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+        .ticket-type { font-size: 12px; color: #5e6c84; }
+        .ticket-status { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.approved { background: #00875a; }
+        .status-dot.progress { background: #ff8b00; }
+        .status-dot.backlog { background: #0052cc; }
+        .status-text { font-size: 13px; font-weight: 600; }
+        .status-text.approved { color: #006644; }
+        .status-text.progress { color: #974f0c; }
+        .status-text.backlog { color: #0052cc; }
+        .ticket-date { font-size: 12px; color: #5e6c84; }
+        .ticket-owner { font-size: 12px; color: #5e6c84; }
+        .hidden { display: none; }
+        .footer { background: #f4f5f7; padding: 20px 40px; border-top: 2px solid #dfe1e6; }
+        .info-box { background: #deebff; border-left: 4px solid #0052cc; padding: 16px; border-radius: 3px; font-size: 13px; color: #172b4d; line-height: 1.6; }
+        .info-box strong { color: #0052cc; }
+        .info-box a { color: #0052cc; font-weight: 600; text-decoration: none; }
+        .info-box a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 Connector/MCP Server Approval Tracker</h1>
+            <p>Search and track all connector and MCP server approval requests in real-time</p>
+        </div>
+
+        <div class="search-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by connector name, platform, or ticket number...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Status:</span>
+                    <button class="filter-btn active" data-status="all">All</button>
+                    <button class="filter-btn" data-status="approved">Approved</button>
+                    <button class="filter-btn" data-status="in-progress">In Progress</button>
+                    <button class="filter-btn" data-status="backlog">Backlog</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Type:</span>
+                    <button class="filter-btn active" data-type="all">All</button>
+                    <button class="filter-btn" data-type="connector">Connector</button>
+                    <button class="filter-btn" data-type="mcp">MCP Server</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number approved" id="approvedCount">7</span>
+                <span>Approved/Enabled</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number progress" id="progressCount">5</span>
+                <span>In Progress</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number backlog" id="backlogCount">13</span>
+                <span>Backlog/Submitted</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">Showing 25 connectors</div>
+                <select class="sort-dropdown" id="sortDropdown">
+                    <option value="recent">Sort by: Most Recent</option>
+                    <option value="name">Sort by: Name (A-Z)</option>
+                    <option value="status">Sort by: Status</option>
+                </select>
+            </div>
+
+            <div class="ticket-list" id="ticketList">
+                <!-- Approved Tickets -->
+                <div class="ticket-row" data-status="approved" data-type="connector" data-search="enable claude connectors s&p global pitchbook moody's lseg morningstar crypto.com aig-536">
+                    <div class="ticket-key">AIG-536</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Enable Claude connectors: S&P Global, PitchBook, Moody's, LSEG, Morningstar, Crypto.com</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">S&P Global</span>
+                            <span class="platform-tag">PitchBook</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot approved"></span>
+                        <span class="status-text approved">Approved</span>
+                    </div>
+                    <div class="ticket-date">Feb 14, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <div class="ticket-row" data-status="approved" data-type="connector" data-search="claude excel powerpoint files aig-404">
+                    <div class="ticket-key">AIG-404</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Claude <>Excel, Powerpoint Files</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Excel</span>
+                            <span class="platform-tag">PowerPoint</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot approved"></span>
+                        <span class="status-text approved">Approved</span>
+                    </div>
+                    <div class="ticket-date">Jan 15, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <div class="ticket-row" data-status="approved" data-type="connector" data-search="confluence chatgpt aig-499">
+                    <div class="ticket-key">AIG-499</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Confluence<>ChatGPT</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot approved"></span>
+                        <span class="status-text approved">Approved</span>
+                    </div>
+                    <div class="ticket-date">Jan 28, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <div class="ticket-row" data-status="approved" data-type="mcp" data-search="cursor vs code atlassian aig-277">
+                    <div class="ticket-key">AIG-277</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Cursor VS Code<>Atlassian</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">VS Code</span>
+                            <span class="platform-tag">Jira</span>
+                        </div>
+                        <div class="ticket-type">MCP Server</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot approved"></span>
+                        <span class="status-text approved">Approved</span>
+                    </div>
+                    <div class="ticket-date">Dec 20, 2025</div>
+                    <div class="ticket-owner">Karim Ali</div>
+                </div>
+
+                <div class="ticket-row" data-status="approved" data-type="mcp" data-search="atlassian claude coding agent aig-293">
+                    <div class="ticket-key">AIG-293</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Atlassian<>Claude/Coding Agent</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Jira</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                        <div class="ticket-type">MCP Server</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot approved"></span>
+                        <span class="status-text approved">Approved</span>
+                    </div>
+                    <div class="ticket-date">Dec 5, 2025</div>
+                    <div class="ticket-owner">Karim Ali</div>
+                </div>
+
+                <!-- In Progress Tickets -->
+                <div class="ticket-row" data-status="in-progress" data-type="mcp" data-search="solscan cursor aig-448">
+                    <div class="ticket-key">AIG-448</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Allow me to access MCP server to Solscan<>Cursor</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">Solscan</span>
+                        </div>
+                        <div class="ticket-type">MCP Server</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot progress"></span>
+                        <span class="status-text progress">Under Review</span>
+                    </div>
+                    <div class="ticket-date">Jan 5, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <div class="ticket-row" data-status="in-progress" data-type="connector" data-search="claude office microsoft aig-457">
+                    <div class="ticket-key">AIG-457</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Claude Extensions in Microsoft Office</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Office</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot progress"></span>
+                        <span class="status-text progress">Under Review</span>
+                    </div>
+                    <div class="ticket-date">Jan 8, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <div class="ticket-row" data-status="in-progress" data-type="connector" data-search="chatgpt pitchbook aig-459">
+                    <div class="ticket-key">AIG-459</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">ChatGPT <> Pitchbook</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">PitchBook</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot progress"></span>
+                        <span class="status-text progress">Testing</span>
+                    </div>
+                    <div class="ticket-date">Jan 10, 2026</div>
+                    <div class="ticket-owner">Sonal Mehta</div>
+                </div>
+
+                <!-- Backlog Tickets -->
+                <div class="ticket-row" data-status="backlog" data-type="mcp" data-search="pagerduty aig-523">
+                    <div class="ticket-key">AIG-523</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">PagerDuty<>Various Tools</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Multiple</span>
+                            <span class="platform-tag">PagerDuty</span>
+                        </div>
+                        <div class="ticket-type">MCP Server</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot backlog"></span>
+                        <span class="status-text backlog">Submitted</span>
+                    </div>
+                    <div class="ticket-date">Feb 10, 2026</div>
+                    <div class="ticket-owner">—</div>
+                </div>
+
+                <div class="ticket-row" data-status="backlog" data-type="connector" data-search="box chatgpt claude aig-508">
+                    <div class="ticket-key">AIG-508</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Box<>ChatGPT, Claude</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Box</span>
+                        </div>
+                        <div class="ticket-type">Connector</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot backlog"></span>
+                        <span class="status-text backlog">Submitted</span>
+                    </div>
+                    <div class="ticket-date">Feb 1, 2026</div>
+                    <div class="ticket-owner">—</div>
+                </div>
+
+                <div class="ticket-row" data-status="backlog" data-type="mcp" data-search="databricks cursor vs code aig-507">
+                    <div class="ticket-key">AIG-507</div>
+                    <div class="ticket-details">
+                        <div class="ticket-name">Databricks<>Cursor, VS Code</div>
+                        <div class="ticket-platforms">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">VS Code</span>
+                            <span class="platform-tag">Databricks</span>
+                        </div>
+                        <div class="ticket-type">MCP Server</div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-dot backlog"></span>
+                        <span class="status-text backlog">Submitted</span>
+                    </div>
+                    <div class="ticket-date">Feb 1, 2026</div>
+                    <div class="ticket-owner">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="info-box">
+                <strong>ℹ️ About This Tracker</strong><br>
+                This page is automatically synchronized with Jira epic <a href="https://galaxydig.atlassian.net/browse/AIG-276" target="_blank">AIG-276</a>. 
+                Status updates appear within 1 minute of Jira ticket changes. For new requests, please use the 
+                <a href="https://galaxydig.atlassian.net/servicedesk/customer/portal/251/group/340/create/1631" target="_blank">intake form</a>.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const ticketList = document.getElementById('ticketList');
+        const resultsCount = document.getElementById('resultsCount');
+        const approvedCount = document.getElementById('approvedCount');
+        const progressCount = document.getElementById('progressCount');
+        const backlogCount = document.getElementById('backlogCount');
+
+        let statusFilter = 'all';
+        let typeFilter = 'all';
+
+        searchInput.addEventListener('input', filterTickets);
+
+        document.querySelectorAll('[data-status]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                statusFilter = this.getAttribute('data-status');
+                filterTickets();
+            });
+        });
+
+        document.querySelectorAll('[data-type]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                typeFilter = this.getAttribute('data-type');
+                filterTickets();
+            });
+        });
+
+        document.getElementById('sortDropdown').addEventListener('change', function() {
+            sortTickets(this.value);
+        });
+
+        function filterTickets() {
+            const search = searchInput.value.toLowerCase();
+            const tickets = document.querySelectorAll('.ticket-row');
+            let visible = 0;
+
+            tickets.forEach(ticket => {
+                const searchText = ticket.getAttribute('data-search');
+                const status = ticket.getAttribute('data-status');
+                const type = ticket.getAttribute('data-type');
+
+                const matchSearch = !search || searchText.includes(search);
+                const matchStatus = statusFilter === 'all' || status === statusFilter;
+                const matchType = typeFilter === 'all' || type === typeFilter;
+
+                if (matchSearch && matchStatus && matchType) {
+                    ticket.classList.remove('hidden');
+                    visible++;
+                } else {
+                    ticket.classList.add('hidden');
+                }
+            });
+
+            resultsCount.textContent = `Showing ${visible} connector${visible !== 1 ? 's' : ''}`;
+            updateCounts();
+        }
+
+        function sortTickets(by) {
+            const tickets = Array.from(document.querySelectorAll('.ticket-row'));
+            tickets.sort((a, b) => {
+                if (by === 'name') {
+                    return a.querySelector('.ticket-name').textContent.localeCompare(b.querySelector('.ticket-name').textContent);
+                } else if (by === 'status') {
+                    const order = { approved: 1, 'in-progress': 2, backlog: 3 };
+                    return order[a.getAttribute('data-status')] - order[b.getAttribute('data-status')];
+                }
+                return 0;
+            });
+            tickets.forEach(t => ticketList.appendChild(t));
+        }
+
+        function updateCounts() {
+            const visible = document.querySelectorAll('.ticket-row:not(.hidden)');
+            let approved = 0, progress = 0, backlog = 0;
+
+            visible.forEach(t => {
+                const s = t.getAttribute('data-status');
+                if (s === 'approved') approved++;
+                else if (s === 'in-progress') progress++;
+                else if (s === 'backlog') backlog++;
+            });
+
+            approvedCount.textContent = approved;
+            progressCount.textContent = progress;
+            backlogCount.textContent = backlog;
+        }
+
+        document.querySelectorAll('.ticket-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const key = this.querySelector('.ticket-key').textContent;
+                window.open(`https://galaxydig.atlassian.net/browse/${key}`, '_blank');
+            });
+        });
+
+        updateCounts();
+    </script>
+</body>
+</html>
