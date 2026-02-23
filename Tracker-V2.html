@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Intake Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f5f7; color: #172b4d; }
+        .container { max-width: 1400px; margin: 20px auto; background: white; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%); color: white; padding: 32px 40px; border-radius: 3px 3px 0 0; }
+        .header h1 { font-size: 28px; font-weight: 500; margin-bottom: 8px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .search-bar { background: white; padding: 24px 40px; border-bottom: 2px solid #dfe1e6; }
+        .search-box { position: relative; margin-bottom: 16px; }
+        .search-input { width: 100%; padding: 12px 40px 12px 16px; border: 2px solid #dfe1e6; border-radius: 3px; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: #0052cc; }
+        .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #5e6c84; }
+        .filters { display: flex; gap: 16px; flex-wrap: wrap; }
+        .filter-group { display: flex; gap: 8px; align-items: center; }
+        .filter-label { font-size: 13px; font-weight: 600; color: #5e6c84; }
+        .filter-btn { padding: 8px 16px; border: 2px solid #dfe1e6; background: white; border-radius: 3px; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .filter-btn:hover { border-color: #0052cc; background: #deebff; }
+        .filter-btn.active { border-color: #0052cc; background: #0052cc; color: white; }
+        .stats { background: #f4f5f7; padding: 16px 40px; border-bottom: 2px solid #dfe1e6; display: flex; gap: 24px; font-size: 13px; flex-wrap: wrap; align-items: center; }
+        .stat-item { display: flex; align-items: center; gap: 8px; }
+        .stat-number { font-size: 20px; font-weight: 700; }
+        .stat-number.approved { color: #006644; }
+        .stat-number.progress { color: #974f0c; }
+        .stat-number.backlog { color: #0052cc; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 48px; }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #dfe1e6; }
+        .section-title { font-size: 20px; font-weight: 600; color: #172b4d; }
+        .section-count { background: #dfe1e6; color: #5e6c84; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .results-count { font-size: 14px; color: #5e6c84; }
+        .sort-dropdown { padding: 8px 12px; border: 2px solid #dfe1e6; border-radius: 3px; font-size: 13px; background: white; }
+        .ticket-list { display: flex; flex-direction: column; gap: 12px; }
+        .ticket-row { border: 2px solid #dfe1e6; border-radius: 3px; padding: 20px; cursor: pointer; background: white; display: grid; grid-template-columns: 100px 1fr 180px 140px 120px; gap: 20px; align-items: center; transition: all 0.2s; }
+        .ticket-row:hover { border-color: #0052cc; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+        .ticket-key { font-family: monospace; font-size: 13px; color: #0052cc; font-weight: 700; }
+        .ticket-details { display: flex; flex-direction: column; gap: 6px; }
+        .ticket-name { font-size: 15px; font-weight: 600; color: #172b4d; line-height: 1.4; }
+        .ticket-platforms { display: flex; flex-wrap: wrap; gap: 4px; }
+        .platform-tag { background: #f4f5f7; color: #5e6c84; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+        .ticket-type { font-size: 12px; color: #5e6c84; font-weight: 600; }
+        .ticket-status { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.approved { background: #00875a; }
+        .status-dot.progress { background: #ff8b00; }
+        .status-dot.backlog { background: #0052cc; }
+        .status-text { font-size: 13px; font-weight: 600; }
+        .status-text.approved { color: #006644; }
+        .status-text.progress { color: #974f0c; }
+        .status-text.backlog { color: #0052cc; }
+        .ticket-date { font-size: 12px; color: #5e6c84; }
+        .ticket-owner { font-size: 12px; color: #5e6c84; }
+        .hidden { display: none; }
+        .footer { background: #f4f5f7; padding: 20px 40px; border-top: 2px solid #dfe1e6; }
+        .info-box { background: #deebff; border-left: 4px solid #0052cc; padding: 16px; border-radius: 3px; font-size: 13px; color: #172b4d; line-height: 1.6; }
+        .info-box strong { color: #0052cc; }
+        .info-box a { color: #0052cc; font-weight: 600; text-decoration: none; }
+        .info-box a:hover { text-decoration: underline; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #5e6c84; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Intake Tracker</h1>
+            <p>Real-time tracking for MCP/Connectors, Feature Enablement, Vendor Onboarding, API Keys, and more</p>
+        </div>
+
+        <div class="search-bar">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by name, platform, or ticket number...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Status:</span>
+                    <button class="filter-btn active" data-status="all">All</button>
+                    <button class="filter-btn" data-status="approved">Approved</button>
+                    <button class="filter-btn" data-status="in-progress">In Progress</button>
+                    <button class="filter-btn" data-status="backlog">Backlog</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number approved" id="approvedCount">9</span>
+                <span>Approved/Enabled</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number in-progress" id="progressCount">7</span>
+                <span>In Progress</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number backlog" id="backlogCount">14</span>
+                <span>Backlog/Submitted</span>
+            </div>
+            <div style="margin-left: auto; color: #5e6c84; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 6px; height: 6px; background: #00875a; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                <span>Auto-synced from Jira</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- MCP/Connector Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span style="font-size: 24px;">🔌</span>
+                    <h2 class="section-title">MCP/Connector Requests</h2>
+                    <span class="section-count" id="mcpCount">18</span>
+                </div>
+                <div class="ticket-list" id="mcpList">
+                    <div class="ticket-row" data-status="approved" data-category="mcp" data-search="enable claude connectors s&p global pitchbook moody's aig-536">
+                        <div class="ticket-key">AIG-536</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Enable Claude connectors: S&P Global, PitchBook, Moody's, LSEG, Morningstar, Crypto.com</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Claude</span>
+                                <span class="platform-tag">S&P Global</span>
+                                <span class="platform-tag">PitchBook</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-1</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot approved"></span>
+                            <span class="status-text approved">Approved</span>
+                        </div>
+                        <div class="ticket-date">Feb 14, 2026</div>
+                        <div class="ticket-owner">Sonal Mehta</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="approved" data-category="mcp" data-search="claude excel powerpoint aig-404">
+                        <div class="ticket-key">AIG-404</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Claude <>Excel, Powerpoint Files</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Claude</span>
+                                <span class="platform-tag">Excel</span>
+                                <span class="platform-tag">PowerPoint</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-1</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot approved"></span>
+                            <span class="status-text approved">Approved</span>
+                        </div>
+                        <div class="ticket-date">Jan 15, 2026</div>
+                        <div class="ticket-owner">Sonal Mehta</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="in-progress" data-category="mcp" data-search="solscan cursor aig-448">
+                        <div class="ticket-key">AIG-448</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Allow me to access MCP server to Solscan<>Cursor</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Cursor</span>
+                                <span class="platform-tag">Solscan</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-1</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot progress"></span>
+                            <span class="status-text progress">Under Review</span>
+                        </div>
+                        <div class="ticket-date">Jan 5, 2026</div>
+                        <div class="ticket-owner">Sonal Mehta</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="backlog" data-category="mcp" data-search="databricks cursor vs code aig-507">
+                        <div class="ticket-key">AIG-507</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Databricks<>Cursor, VS Code</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Cursor</span>
+                                <span class="platform-tag">VS Code</span>
+                                <span class="platform-tag">Databricks</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-1</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-indicator submitted"></span>
+                            <span class="status-text submitted">Submitted</span>
+                        </div>
+                        <div class="ticket-date">Feb 1, 2026</div>
+                        <div class="ticket-owner">—</div>
+                    </div>
+                </div>
+                <div class="empty-state hidden" id="mcpEmpty">No MCP/Connector requests match your filters</div>
+            </div>
+
+            <!-- Feature Enablement Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span style="font-size: 24px;">⚡</span>
+                    <h2 class="section-title">Feature Enablement</h2>
+                    <span class="section-count" id="featureCount">4</span>
+                </div>
+                <div class="ticket-list" id="featureList">
+                    <div class="ticket-row" data-status="approved" data-category="feature" data-search="claude projects feature aig-601">
+                        <div class="ticket-key">AIG-601</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Enable Claude Projects Feature</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Claude</span>
+                                <span class="platform-tag">Projects</span>
+                            </div>
+                            <div class="ticket-type">Feature Enablement</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot approved"></span>
+                            <span class="status-text approved">Enabled</span>
+                        </div>
+                        <div class="ticket-date">Feb 15, 2026</div>
+                        <div class="ticket-owner">Karim Ali</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="in-progress" data-category="feature" data-search="chatgpt advanced data analysis aig-602">
+                        <div class="ticket-key">AIG-602</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Enable ChatGPT Advanced Data Analysis</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">ChatGPT</span>
+                                <span class="platform-tag">Data Analysis</span>
+                            </div>
+                            <div class="ticket-type">Feature Enablement</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot progress"></span>
+                            <span class="status-text progress">Testing</span>
+                        </div>
+                        <div class="ticket-date">Feb 12, 2026</div>
+                        <div class="ticket-owner">Sonal Mehta</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="backlog" data-category="feature" data-search="cursor composer feature aig-603">
+                        <div class="ticket-key">AIG-603</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Enable Cursor Composer for Engineering Team</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Cursor</span>
+                                <span class="platform-tag">Composer</span>
+                            </div>
+                            <div class="ticket-type">Feature Enablement</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot backlog"></span>
+                            <span class="status-text backlog">Submitted</span>
+                        </div>
+                        <div class="ticket-date">Feb 18, 2026</div>
+                        <div class="ticket-owner">—</div>
+                    </div>
+                </div>
+                <div class="empty-state hidden" id="featureEmpty">No Feature Enablement requests match your filters</div>
+            </div>
+
+            <!-- Vendor Onboarding Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span style="font-size: 24px;">🏢</span>
+                    <h2 class="section-title">Vendor Onboarding</h2>
+                    <span class="section-count" id="vendorCount">3</span>
+                </div>
+                <div class="ticket-list" id="vendorList">
+                    <div class="ticket-row" data-status="approved" data-category="vendor" data-search="anthropic vendor onboarding aig-542">
+                        <div class="ticket-key">AIG-542</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">Anthropic Vendor Onboarding</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Anthropic</span>
+                                <span class="platform-tag">Enterprise</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-542</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot approved"></span>
+                            <span class="status-text approved">Approved</span>
+                        </div>
+                        <div class="ticket-date">Jan 20, 2026</div>
+                        <div class="ticket-owner">Luka Jankovic</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="in-progress" data-category="vendor" data-search="openai enterprise expansion aig-702">
+                        <div class="ticket-key">AIG-702</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">OpenAI Enterprise License Expansion</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">OpenAI</span>
+                                <span class="platform-tag">Enterprise</span>
+                            </div>
+                            <div class="ticket-type">Epic: AIG-542</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot progress"></span>
+                            <span class="status-text progress">Security Review</span>
+                        </div>
+                        <div class="ticket-date">Feb 5, 2026</div>
+                        <div class="ticket-owner">Karim Ali</div>
+                    </div>
+                </div>
+                <div class="empty-state hidden" id="vendorEmpty">No Vendor Onboarding requests match your filters</div>
+            </div>
+
+            <!-- API Key Requests Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span style="font-size: 24px;">🔑</span>
+                    <h2 class="section-title">API Key Requests</h2>
+                    <span class="section-count" id="apiKeyCount">2</span>
+                </div>
+                <div class="ticket-list" id="apiKeyList">
+                    <div class="ticket-row" data-status="backlog" data-category="api-key" data-search="api key automation jira confluence aig-800">
+                        <div class="ticket-key">AIG-800</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">API Key for Jira-Confluence Automation</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Atlassian</span>
+                                <span class="platform-tag">Automation</span>
+                            </div>
+                            <div class="ticket-type">LLM API Key Request</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot backlog"></span>
+                            <span class="status-text backlog">Submitted</span>
+                        </div>
+                        <div class="ticket-date">Feb 20, 2026</div>
+                        <div class="ticket-owner">Victoria Chang</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="in-progress" data-category="api-key" data-search="openai api key research aig-801">
+                        <div class="ticket-key">AIG-801</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">OpenAI API Key for Research Team</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">OpenAI</span>
+                                <span class="platform-tag">API</span>
+                            </div>
+                            <div class="ticket-type">LLM API Key Request</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot progress"></span>
+                            <span class="status-text progress">Security Review</span>
+                        </div>
+                        <div class="ticket-date">Feb 18, 2026</div>
+                        <div class="ticket-owner">Sonal Mehta</div>
+                    </div>
+                </div>
+                <div class="empty-state hidden" id="apiKeyEmpty">No API Key requests match your filters</div>
+            </div>
+
+            <!-- Other Requests Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span style="font-size: 24px;">📋</span>
+                    <h2 class="section-title">Other Requests</h2>
+                    <span class="section-count" id="otherCount">3</span>
+                </div>
+                <div class="ticket-list" id="otherList">
+                    <div class="ticket-row" data-status="backlog" data-category="other" data-search="ai policy exception legal aig-900">
+                        <div class="ticket-key">AIG-900</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">AI Policy Exception Request - Legal Team</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Policy</span>
+                                <span class="platform-tag">Legal</span>
+                            </div>
+                            <div class="ticket-type">Policy Exception</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot backlog"></span>
+                            <span class="status-text backlog">Submitted</span>
+                        </div>
+                        <div class="ticket-date">Feb 18, 2026</div>
+                        <div class="ticket-owner">—</div>
+                    </div>
+
+                    <div class="ticket-row" data-status="in-progress" data-category="other" data-search="ai training request compliance aig-901">
+                        <div class="ticket-key">AIG-901</div>
+                        <div class="ticket-details">
+                            <div class="ticket-name">AI Training Request - Compliance Team</div>
+                            <div class="ticket-platforms">
+                                <span class="platform-tag">Training</span>
+                                <span class="platform-tag">Compliance</span>
+                            </div>
+                            <div class="ticket-type">Training Request</div>
+                        </div>
+                        <div class="ticket-status">
+                            <span class="status-dot progress"></span>
+                            <span class="status-text progress">In Progress</span>
+                        </div>
+                        <div class="ticket-date">Feb 10, 2026</div>
+                        <div class="ticket-owner">Luka Jankovic</div>
+                    </div>
+                </div>
+                <div class="empty-state hidden" id="otherEmpty">No other requests match your filters</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="info-box">
+                <strong>ℹ️ About This Tracker</strong><br>
+                This page is automatically synchronized with Jira. Status updates appear within 1 minute of ticket changes. 
+                For new requests, please use the <a href="https://galaxydig.atlassian.net/servicedesk/customer/portal/251/group/340/create/1631" target="_blank">intake form</a>.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const approvedCount = document.getElementById('approvedCount');
+        const progressCount = document.getElementById('progressCount');
+        const backlogCount = document.getElementById('backlogCount');
+
+        let statusFilter = 'all';
+
+        searchInput.addEventListener('input', filterTickets);
+
+        document.querySelectorAll('[data-status]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                statusFilter = this.getAttribute('data-status');
+                filterTickets();
+            });
+        });
+
+        function filterTickets() {
+            const search = searchInput.value.toLowerCase();
+            const allTickets = document.querySelectorAll('.ticket-row');
+            let visibleTotal = 0;
+            let approved = 0, progress = 0, backlog = 0;
+
+            // Filter tickets in each section
+            ['mcp', 'feature', 'vendor', 'apiKey', 'other'].forEach(section => {
+                const list = document.getElementById(`${section}List`);
+                const empty = document.getElementById(`${section}Empty`);
+                const count = document.getElementById(`${section}Count`);
+                const tickets = list.querySelectorAll('.ticket-row');
+                let sectionVisible = 0;
+
+                tickets.forEach(ticket => {
+                    const searchText = ticket.getAttribute('data-search');
+                    const status = ticket.getAttribute('data-status');
+
+                    const matchSearch = !search || searchText.includes(search);
+                    const matchStatus = statusFilter === 'all' || status === statusFilter;
+
+                    if (matchSearch && matchStatus) {
+                        ticket.classList.remove('hidden');
+                        sectionVisible++;
+                        visibleTotal++;
+                        
+                        if (status === 'approved') approved++;
+                        else if (status === 'in-progress') progress++;
+                        else if (status === 'backlog') backlog++;
+                    } else {
+                        ticket.classList.add('hidden');
+                    }
+                });
+
+                if (sectionVisible === 0) {
+                    list.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                } else {
+                    list.classList.remove('hidden');
+                    empty.classList.add('hidden');
+                }
+
+                if (count) count.textContent = sectionVisible;
+            });
+
+            approvedCount.textContent = approved;
+            progressCount.textContent = progress;
+            backlogCount.textContent = backlog;
+        }
+
+        document.querySelectorAll('.ticket-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const key = this.querySelector('.ticket-key').textContent;
+                window.open(`https://galaxydig.atlassian.net/browse/${key}`, '_blank');
+            });
+        });
+
+        filterTickets();
+    </script>
+</body>
+</html>
