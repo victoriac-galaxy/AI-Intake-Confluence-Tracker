@@ -1,392 +1,951 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Calendar, User, ExternalLink } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connector/MCP Server Approval Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const LiveConnectorTracker = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
-  const [tickets, setTickets] = useState([]);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f4f5f7;
+            padding: 20px;
+            color: #172b4d;
+        }
 
-  // Simulated ticket data (in production, this comes from Jira API)
-  useEffect(() => {
-    const mockTickets = [
-      {
-        key: 'AIG-536',
-        name: 'Enable Claude connectors: S&P Global, PitchBook, Moody\'s, LSEG, Morningstar, Crypto.com',
-        status: 'approved',
-        type: 'connector',
-        platforms: ['Claude', 'S&P Global', 'PitchBook', 'Moody\'s'],
-        date: '2026-02-14',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-404',
-        name: 'Claude <>Excel, Powerpoint Files',
-        status: 'approved',
-        type: 'connector',
-        platforms: ['Claude', 'Excel', 'PowerPoint'],
-        date: '2026-01-15',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-499',
-        name: 'Confluence<>ChatGPT',
-        status: 'approved',
-        type: 'connector',
-        platforms: ['ChatGPT', 'Confluence'],
-        date: '2026-01-28',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-277',
-        name: 'Cursor VS Code<>Atlassian',
-        status: 'approved',
-        type: 'mcp',
-        platforms: ['Cursor', 'VS Code', 'Jira', 'Confluence'],
-        date: '2025-12-20',
-        owner: 'Karim Ali'
-      },
-      {
-        key: 'AIG-293',
-        name: 'Atlassian<>Claude/Coding Agent',
-        status: 'approved',
-        type: 'mcp',
-        platforms: ['Claude', 'Jira', 'Confluence'],
-        date: '2025-12-05',
-        owner: 'Karim Ali'
-      },
-      {
-        key: 'AIG-271',
-        name: 'Jira <>ChatGPT',
-        status: 'approved',
-        type: 'connector',
-        platforms: ['ChatGPT', 'Jira'],
-        date: '2025-11-15',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-270',
-        name: 'Admin Authorization for Atlassian MCP Server in VS Code',
-        status: 'approved',
-        type: 'mcp',
-        platforms: ['VS Code', 'Jira', 'Confluence'],
-        date: '2025-11-28',
-        owner: 'Karim Ali'
-      },
-      {
-        key: 'AIG-448',
-        name: 'Allow me to access MCP server to Solscan<>Cursor',
-        status: 'in-progress',
-        type: 'mcp',
-        platforms: ['Cursor', 'Solscan'],
-        date: '2026-01-05',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-457',
-        name: 'Claude Extensions in Microsoft Office',
-        status: 'in-progress',
-        type: 'connector',
-        platforms: ['Claude', 'Office'],
-        date: '2026-01-08',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-459',
-        name: 'ChatGPT <> Pitchbook',
-        status: 'in-progress',
-        type: 'connector',
-        platforms: ['ChatGPT', 'PitchBook'],
-        date: '2026-01-10',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-505',
-        name: 'Claude for Legal',
-        status: 'in-progress',
-        type: 'connector',
-        platforms: ['Claude', 'Legal'],
-        date: '2026-02-01',
-        owner: 'Sonal Mehta'
-      },
-      {
-        key: 'AIG-412',
-        name: 'Enable Cursor ↔ GitHub integration for Production Engineering',
-        status: 'in-progress',
-        type: 'mcp',
-        platforms: ['Cursor', 'GitHub'],
-        date: '2025-12-15',
-        owner: 'Karim Ali'
-      },
-      {
-        key: 'AIG-523',
-        name: 'PagerDuty<>Various Tools',
-        status: 'backlog',
-        type: 'mcp',
-        platforms: ['Multiple', 'PagerDuty'],
-        date: '2026-02-10',
-        owner: null
-      },
-      {
-        key: 'AIG-508',
-        name: 'Box<>ChatGPT, Claude',
-        status: 'backlog',
-        type: 'connector',
-        platforms: ['ChatGPT', 'Claude', 'Box'],
-        date: '2026-02-01',
-        owner: null
-      },
-      {
-        key: 'AIG-507',
-        name: 'Databricks<>Cursor, VS Code',
-        status: 'backlog',
-        type: 'mcp',
-        platforms: ['Cursor', 'VS Code', 'Databricks'],
-        date: '2026-02-01',
-        owner: null
-      }
-    ];
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
 
-    setTickets(mockTickets);
-  }, []);
+        .header {
+            background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%);
+            color: white;
+            padding: 32px 40px;
+            border-radius: 3px 3px 0 0;
+        }
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = !searchTerm || 
-      ticket.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.platforms.some(p => p.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      ticket.key.toLowerCase().includes(searchTerm.toLowerCase());
+        .header h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
 
-    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesType = typeFilter === 'all' || ticket.type === typeFilter;
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
 
-    return matchesSearch && matchesStatus && matchesType;
-  });
+        .metadata {
+            background: #f4f5f7;
+            padding: 16px 40px;
+            border-bottom: 2px solid #dfe1e6;
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            color: #5e6c84;
+        }
 
-  const sortedTickets = [...filteredTickets].sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'status') {
-      const order = { approved: 1, 'in-progress': 2, backlog: 3 };
-      return order[a.status] - order[b.status];
-    }
-    return 0;
-  });
+        .metadata-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-  const counts = {
-    approved: tickets.filter(t => t.status === 'approved').length,
-    inProgress: tickets.filter(t => t.status === 'in-progress').length,
-    backlog: tickets.filter(t => t.status === 'backlog').length
-  };
+        .metadata-item strong {
+            color: #172b4d;
+        }
 
-  const getStatusDisplay = (status) => {
-    const map = {
-      approved: { text: 'Approved', color: 'text-green-700', bg: 'bg-green-50', dot: 'bg-green-500' },
-      'in-progress': { text: 'In Progress', color: 'text-yellow-700', bg: 'bg-yellow-50', dot: 'bg-yellow-500' },
-      backlog: { text: 'Submitted', color: 'text-blue-700', bg: 'bg-blue-50', dot: 'bg-blue-500' }
-    };
-    return map[status];
-  };
+        .tabs {
+            background: white;
+            border-bottom: 2px solid #dfe1e6;
+            padding: 0 40px;
+            display: flex;
+            gap: 8px;
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-8 py-8">
-          <h1 className="text-3xl font-semibold mb-2">🔌 Connector/MCP Server Approval Tracker</h1>
-          <p className="text-blue-100">Search and track all connector and MCP server approval requests in real-time</p>
-        </div>
-      </div>
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 500;
+            color: #5e6c84;
+            transition: all 0.2s;
+        }
 
-      {/* Search & Filter Bar */}
-      <div className="bg-white border-b-2 border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Search Box */}
-            <div className="flex-1 min-w-80 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by connector name, platform, or ticket number..."
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-md focus:border-blue-500 focus:outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+        .tab:hover {
+            color: #172b4d;
+        }
 
-            {/* Status Filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-600">Status:</span>
-              <div className="flex gap-2">
-                {['all', 'approved', 'in-progress', 'backlog'].map(status => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      statusFilter === status
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-blue-500'
-                    }`}
-                  >
-                    {status === 'all' ? 'All' : status === 'in-progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
+        .tab.active {
+            color: #0052cc;
+            border-bottom-color: #0052cc;
+        }
 
-            {/* Type Filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-600">Type:</span>
-              <div className="flex gap-2">
-                {['all', 'connector', 'mcp'].map(type => (
-                  <button
-                    key={type}
-                    onClick={() => setTypeFilter(type)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      typeFilter === type
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-blue-500'
-                    }`}
-                  >
-                    {type === 'all' ? 'All' : type === 'mcp' ? 'MCP Server' : 'Connector'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        .content {
+            padding: 40px;
+        }
 
-      {/* Stats Bar */}
-      <div className="bg-gray-50 border-b-2 border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex gap-8 items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-green-600">{counts.approved}</span>
-              <span className="text-sm text-gray-600">Approved/Enabled</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-yellow-600">{counts.inProgress}</span>
-              <span className="text-sm text-gray-600">In Progress</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-blue-600">{counts.backlog}</span>
-              <span className="text-sm text-gray-600">Backlog/Submitted</span>
-            </div>
-            <div className="ml-auto flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Auto-synced from Jira</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        .queue-section {
+            margin-bottom: 48px;
+        }
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-8 py-8">
-        {/* Results Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-sm text-gray-600">
-            Showing {sortedTickets.length} connector{sortedTickets.length !== 1 ? 's' : ''}
-          </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border-2 border-gray-300 rounded-md text-sm"
-          >
-            <option value="recent">Sort by: Most Recent</option>
-            <option value="name">Sort by: Name (A-Z)</option>
-            <option value="status">Sort by: Status</option>
-          </select>
+        .queue-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #dfe1e6;
+        }
+
+        .queue-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #172b4d;
+        }
+
+        .queue-count {
+            background: #dfe1e6;
+            color: #5e6c84;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .queue-count.approved {
+            background: #e3fcef;
+            color: #006644;
+        }
+
+        .queue-count.in-progress {
+            background: #fff4e6;
+            color: #974f0c;
+        }
+
+        .queue-count.backlog {
+            background: #deebff;
+            color: #0052cc;
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 16px;
+        }
+
+        .ticket-card {
+            border: 2px solid #dfe1e6;
+            border-radius: 3px;
+            padding: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: white;
+        }
+
+        .ticket-card:hover {
+            border-color: #0052cc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .ticket-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .ticket-key {
+            font-family: monospace;
+            font-size: 11px;
+            color: #5e6c84;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            background: #e3fcef;
+            color: #006644;
+        }
+
+        .status-in-progress {
+            background: #fff4e6;
+            color: #974f0c;
+        }
+
+        .status-submitted {
+            background: #deebff;
+            color: #0052cc;
+        }
+
+        .ticket-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #172b4d;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .ticket-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: #5e6c84;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            min-width: 70px;
+        }
+
+        .platform-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .platform-tag {
+            background: #f4f5f7;
+            color: #5e6c84;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #5e6c84;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .sync-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #00875a;
+            font-size: 12px;
+        }
+
+        .sync-dot {
+            width: 6px;
+            height: 6px;
+            background: #00875a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 Connector/MCP Server Approval Tracker</h1>
+            <p>Real-time status tracking for all MCP server and connector approval requests</p>
         </div>
 
-        {/* Ticket List */}
-        {sortedTickets.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4 opacity-20">🔍</div>
-            <div className="text-lg font-semibold text-gray-700 mb-2">No results found</div>
-            <div className="text-sm text-gray-500">Try adjusting your search or filters</div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sortedTickets.map(ticket => {
-              const statusInfo = getStatusDisplay(ticket.status);
-              return (
-                <div
-                  key={ticket.key}
-                  className="bg-white border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => window.open(`https://galaxydig.atlassian.net/browse/${ticket.key}`, '_blank')}
-                >
-                  <div className="grid grid-cols-12 gap-4 items-center">
-                    {/* Ticket Key */}
-                    <div className="col-span-1">
-                      <div className="font-mono text-xs font-bold text-blue-600">{ticket.key}</div>
-                    </div>
+        <div class="metadata">
+            <div class="metadata-item">
+                <span>📊 <strong>Total Requests:</strong> 25</span>
+            </div>
+            <div class="metadata-item">
+                <span>✅ <strong>Approved:</strong> 7</span>
+            </div>
+            <div class="metadata-item">
+                <span>🔄 <strong>In Progress:</strong> 5</span>
+            </div>
+            <div class="metadata-item">
+                <span>📥 <strong>Backlog:</strong> 13</span>
+            </div>
+            <div class="metadata-item sync-indicator" style="margin-left: auto;">
+                <span class="sync-dot"></span>
+                <span>Last synced: 2 minutes ago</span>
+            </div>
+        </div>
 
-                    {/* Ticket Details */}
-                    <div className="col-span-5">
-                      <div className="font-semibold text-gray-900 mb-1.5">{ticket.name}</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ticket.platforms.map(platform => (
-                          <span key={platform} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">
-                            {platform}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{ticket.type === 'mcp' ? 'MCP Server' : 'Connector'}</div>
-                    </div>
+        <div class="tabs">
+            <div class="tab active">All Queues</div>
+            <div class="tab">Approved Only</div>
+            <div class="tab">My Requests</div>
+        </div>
 
-                    {/* Status */}
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${statusInfo.dot}`}></div>
-                        <span className={`text-sm font-semibold ${statusInfo.color}`}>
-                          {statusInfo.text}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Date */}
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(ticket.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                      </div>
-                    </div>
-
-                    {/* Owner */}
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <User className="w-4 h-4" />
-                        <span>{ticket.owner || '—'}</span>
-                      </div>
-                    </div>
-                  </div>
+        <div class="content">
+            <!-- APPROVED/ENABLED SECTION -->
+            <div class="queue-section">
+                <div class="queue-header">
+                    <span style="font-size: 24px;">✅</span>
+                    <h2 class="queue-title">Approved/Enabled</h2>
+                    <span class="queue-count approved">7</span>
                 </div>
-              );
-            })}
-          </div>
-        )}
 
-        {/* Footer */}
-        <div className="mt-8 pt-6 border-t-2 border-gray-200">
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-            <div className="flex items-start gap-3">
-              <div className="text-blue-600 font-semibold">ℹ️</div>
-              <div className="text-sm text-gray-700">
-                This page is automatically synchronized with Jira epic{' '}
-                <a href="https://galaxydig.atlassian.net/browse/AIG-276" className="text-blue-600 font-semibold hover:underline" target="_blank" rel="noopener noreferrer">
-                  AIG-276
-                </a>
-                . Status updates appear within 1 minute of Jira ticket changes. For new requests, please use the{' '}
-                <a href="https://galaxydig.atlassian.net/servicedesk/customer/portal/251/group/340/create/1631" className="text-blue-600 font-semibold hover:underline" target="_blank" rel="noopener noreferrer">
-                  intake form
-                </a>.
-              </div>
+                <div class="ticket-grid">
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-536</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Enable Claude connectors: S&P Global, PitchBook, Moody's, LSEG, Morningstar, Crypto.com</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Feb 14, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-404</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Claude <>Excel, Powerpoint Files</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Jan 15, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Excel</span>
+                            <span class="platform-tag">PowerPoint</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-277</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Cursor VS Code<>Atlassian</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Dec 20, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Karim Ali</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">VS Code</span>
+                            <span class="platform-tag">Jira</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-270</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Admin Authorization for Atlassian MCP Server in VS Code</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Nov 28, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Karim Ali</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">VS Code</span>
+                            <span class="platform-tag">Jira</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-271</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Jira <>ChatGPT</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Nov 15, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Jira</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-499</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Confluence<>ChatGPT</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Jan 28, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-293</span>
+                            <span class="status-badge status-approved">✅ Approved</span>
+                        </div>
+                        <div class="ticket-title">Atlassian<>Claude/Coding Agent</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Approved:</span>
+                                <span>Dec 5, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Karim Ali</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Jira</span>
+                            <span class="platform-tag">Confluence</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default LiveConnectorTracker;
+            <!-- IN PROGRESS SECTION -->
+            <div class="queue-section">
+                <div class="queue-header">
+                    <span style="font-size: 24px;">🔄</span>
+                    <h2 class="queue-title">In Progress</h2>
+                    <span class="queue-count in-progress">5</span>
+                </div>
+
+                <div class="ticket-grid">
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-448</span>
+                            <span class="status-badge status-in-progress">🔄 Under Review</span>
+                        </div>
+                        <div class="ticket-title">Allow me to access MCP server to Solscan<>Cursor</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 5, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">Solscan</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-457</span>
+                            <span class="status-badge status-in-progress">🔄 Under Review</span>
+                        </div>
+                        <div class="ticket-title">Claude Extensions in Microsoft Office</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 8, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Office</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-459</span>
+                            <span class="status-badge status-in-progress">🔄 Under Review</span>
+                        </div>
+                        <div class="ticket-title">ChatGPT <> Pitchbook</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 10, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">PitchBook</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-505</span>
+                            <span class="status-badge status-in-progress">🔄 Testing</span>
+                        </div>
+                        <div class="ticket-title">Claude for Legal</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 1, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Sonal Mehta</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Legal</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-412</span>
+                            <span class="status-badge status-in-progress">🔄 Security Review</span>
+                        </div>
+                        <div class="ticket-title">Enable Cursor ↔ GitHub integration for Production Engineering</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Dec 15, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Owner:</span>
+                                <span>Karim Ali</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">GitHub</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BACKLOG SECTION -->
+            <div class="queue-section">
+                <div class="queue-header">
+                    <span style="font-size: 24px;">📥</span>
+                    <h2 class="queue-title">Backlog (Submitted)</h2>
+                    <span class="queue-count backlog">13</span>
+                </div>
+
+                <div class="ticket-grid">
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-523</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">PagerDuty<>Various Tools</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 10, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Bharat Karia</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Multiple</span>
+                            <span class="platform-tag">PagerDuty</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-508</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Box<>ChatGPT, Claude</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>Connector</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 1, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Legal Team</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Box</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-507</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Databricks<>Cursor, VS Code</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 1, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Finance/IR Team</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">VS Code</span>
+                            <span class="platform-tag">Databricks</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-506</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Databricks<>ChatGPT, Claude</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 1, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Trading Team</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Databricks</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-513</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Github<>Cursor</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Feb 10, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Oren K</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">GitHub</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-462</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Notion<> Claude Code - Alluvial</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 15, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Alluvial Team</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude Code</span>
+                            <span class="platform-tag">Notion</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-461</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Enable Atlassian MCP for OpenAI Agent Builder - Product Ideas</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 15, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Omer Ekin</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">OpenAI</span>
+                            <span class="platform-tag">Jira</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-292</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Clickhouse<>Coding Agents</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Oct 15, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Bharat Karia</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Claude</span>
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">Clickhouse</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-283</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">ChatGPT<>Solscan</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Oct 1, 2025</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Michael Marcantonio</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">ChatGPT</span>
+                            <span class="platform-tag">Solscan</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-key">AIG-473</span>
+                            <span class="status-badge status-submitted">📥 Submitted</span>
+                        </div>
+                        <div class="ticket-title">Access Notion MCP Server via Cursor</div>
+                        <div class="ticket-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Type:</span>
+                                <span>MCP Server</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Submitted:</span>
+                                <span>Jan 25, 2026</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Requestor:</span>
+                                <span>Josh Siverson</span>
+                            </div>
+                        </div>
+                        <div class="platform-tags">
+                            <span class="platform-tag">Cursor</span>
+                            <span class="platform-tag">Notion</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INFO BANNER -->
+            <div style="background: #deebff; border-left: 4px solid #0052cc; padding: 16px; border-radius: 3px; margin-top: 32px;">
+                <div style="font-weight: 600; margin-bottom: 8px; color: #0052cc;">ℹ️ About This Tracker</div>
+                <div style="font-size: 13px; color: #172b4d; line-height: 1.6;">
+                    This page is automatically synchronized with Jira epic <a href="https://galaxydig.atlassian.net/browse/AIG-276" style="color: #0052cc;">AIG-276</a>. 
+                    Status updates appear within 1 minute of Jira ticket changes. For new requests, please use the 
+                    <a href="https://galaxydig.atlassian.net/servicedesk/customer/portal/251/group/340/create/1631" style="color: #0052cc;">intake form</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Make cards clickable
+        document.querySelectorAll('.ticket-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const key = this.querySelector('.ticket-key').textContent;
+                window.open(`https://galaxydig.atlassian.net/browse/${key}`, '_blank');
+            });
+        });
+
+        // Tab switching (visual only in this mockup)
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
